@@ -14,12 +14,5 @@ COPY . .
 
 RUN mkdir -p app/static/uploads
 
-# Create a Python script for database initialization
-RUN echo 'from app import create_app, db; from app.models import User, Upload, ProcessedFile, QualityMetrics, UserSession; app = create_app(); app.app_context().push(); db.create_all(); print("Database tables created successfully")' > init_db_container.py
-
-# Run database init then start gunicorn
-RUN echo 'python init_db_container.py && gunicorn run:app --bind 0.0.0.0:10000' > /start.sh && chmod +x /start.sh
-
-EXPOSE 10000
-
-CMD ["/start.sh"]
+# Initialize database and run app in one command
+CMD sh -c "python -c 'from app import create_app, db; from app.models import User, Upload, ProcessedFile, QualityMetrics, UserSession; app = create_app(); app.app_context().push(); db.create_all(); print(\"Database ready\")' && gunicorn run:app --bind 0.0.0.0:10000"

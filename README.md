@@ -32,7 +32,6 @@ A full-stack web application for uploading, cleaning, analyzing, and managing da
 
 ### Installation
 
-```bash
 # Clone the repository
 git clone https://github.com/Ertonadol12/data-management-platform.git
 cd data-management-platform
@@ -49,4 +48,23 @@ python3 init_db.py
 
 # Run the application
 python3 run.py
+
+## Running Tests
+pytest tests/ -v
+
+## Project Structure
+data_management_platform/
+├── app/           # Main application
+├── tests/         # Unit tests
+├── config.py      # Configuration
+├── requirements.txt
+└── run.py
+
+## 👨‍💻 Author
+Ermias Meseret-Data Engineer
+
+## 📝 License
+MIT License
+
+
 

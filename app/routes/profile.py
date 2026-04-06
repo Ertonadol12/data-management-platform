@@ -5,6 +5,8 @@ User Profile Routes
 from flask import render_template, jsonify, request, flash, redirect, url_for
 from flask_login import login_required, current_user, logout_user
 from app import db, bcrypt
+from app.models.user import User
+from app.models.upload import Upload
 from app.models.upload import Upload
 from flask import Blueprint
 

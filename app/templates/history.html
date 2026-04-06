@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Upload History - Data Management Platform{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-history me-2"></i>Upload History
+</h1>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Uploads</h5>
+    </div>
+    <div class="card-body">
+        <div id="loading" class="text-center py-5">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Loading history...</p>
+        </div>
+        <div id="history-table" style="display: none;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadHistory() {
+        fetch('/history/api/history')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.uploads && data.uploads.length > 0) {
+                    let html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
+                    html += '<th>Filename</th><th>Type</th><th>Size</th><th>Rows</th><th>Date</th><th>Status</th><th>Actions</th>';
+                    html += '</tr></thead><tbody>';
+                    
+                    data.uploads.forEach(upload => {
+                        let statusBadge = upload.status === 'completed' ? 'success' : 'warning';
+                        html += `<tr>
+                            <td><i class="fas fa-file-${upload.file_type} me-2"></i>${upload.filename}</td>
+                            <td>${upload.file_type.toUpperCase()}</td>
+                            <td>${(upload.file_size / 1024).toFixed(1)} KB</td>
+                            <td>${upload.row_count || '-'}</td>
+                            <td>${upload.uploaded_at}</td>
+                            <td><span class="badge bg-${statusBadge}">${upload.status}</span></td>
+                            <td>
+                                <a href="/preview/${upload.id}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                <a href="/report/${upload.id}" class="btn btn-sm btn-secondary"><i class="fas fa-chart-bar"></i></a>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    document.getElementById('history-table').innerHTML = html;
+                    document.getElementById('history-table').style.display = 'block';
+                } else {
+                    document.getElementById('history-table').innerHTML = '<p class="text-muted text-center">No uploads yet. <a href="/upload">Upload your first file</a></p>';
+                    document.getElementById('history-table').style.display = 'block';
+                }
+            });
+    }
+    
+    loadHistory();
+</script>
+{% endblock %}

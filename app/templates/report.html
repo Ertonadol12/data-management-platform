@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Quality Report - Data Management Platform{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-chart-bar me-2"></i>Quality Report
+</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">{{ upload.original_filename }}</h5>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading report data...</p>
+                </div>
+                <div id="content" style="display: none;"></div>
+                <div id="error" style="display: none;" class="alert alert-danger"></div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('history.history_page') }}" class="btn btn-secondary">
+                <i class="fas fa-history me-2"></i>Back to History
+            </a>
+            <a href="{{ url_for('clean.clean_page', upload_id=upload.id) }}" class="btn btn-primary">
+                <i class="fas fa-broom me-2"></i>Back to Cleaning
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const uploadId = {{ upload.id }};
+    
+    fetch(`/report/api/report/${uploadId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            
+            if (data.success) {
+                let html = `
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>${data.total_rows}</h3>
+                                    <p class="mb-0">Total Rows</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>${data.total_columns}</h3>
+                                    <p class="mb-0">Total Columns</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>${data.duplicate_count || 0}</h3>
+                                    <p class="mb-0">Duplicate Rows</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3>${data.columns.length}</h3>
+                                    <p class="mb-0">Columns Analyzed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>Column Details</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Column Name</th>
+                                    <th>Data Type</th>
+                                    <th>Null Count</th>
+                                    <th>Null %</th>
+                                    <th>Unique Values</th>
+                                 </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                data.columns.forEach(col => {
+                    html += `<tr>
+                        <td><strong>${escapeHtml(col.name)}</strong></td>
+                        <td><span class="badge bg-secondary">${col.data_type}</span></td>
+                        <td>${col.null_count}</td>
+                        <td>${col.null_percentage}%</td>
+                        <td>${col.unique_count}</td>
+                    </tr>`;
+                });
+                
+                html += `</tbody></table></div>`;
+                document.getElementById('content').innerHTML = html;
+                document.getElementById('content').style.display = 'block';
+            } else {
+                document.getElementById('error').innerHTML = data.error || 'Failed to load report';
+                document.getElementById('error').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').innerHTML = 'Error loading report: ' + error;
+            document.getElementById('error').style.display = 'block';
+        });
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+</script>
+{% endblock %}

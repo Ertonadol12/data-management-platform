@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Data Preview - Data Management Platform{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-table me-2"></i>Data Preview
+</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">File Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Filename:</strong> {{ upload.original_filename }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>File Type:</strong> {{ upload.file_type|upper }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>File Size:</strong> {{ (upload.file_size / 1024)|round(2) }} KB
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Status:</strong> 
+                        <span class="badge bg-warning">{{ upload.status }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Column Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div id="stats-loading" class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading data preview...</p>
+                </div>
+                <div id="stats-content" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Data Preview (First 100 rows)</h5>
+            </div>
+            <div class="card-body">
+                <div id="preview-loading" class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading data...</p>
+                </div>
+                <div id="preview-content" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('clean.clean_page', upload_id=upload.id) }}" class="btn btn-primary">
+                <i class="fas fa-broom me-2"></i>Start Cleaning
+            </a>
+            <a href="{{ url_for('upload.upload_page') }}" class="btn btn-secondary">
+                <i class="fas fa-upload me-2"></i>Upload Another
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const uploadId = {{ upload.id }};
+    
+    // Load column statistics
+    fetch(`/preview/api/preview/${uploadId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('stats-loading').style.display = 'none';
+            
+            if (data.success) {
+                // Show column stats
+                let statsHtml = '<div class="table-responsive"><table class="table table-sm"><thead><tr>';
+                statsHtml += '<th>Column</th><th>Type</th><th>Null Count</th><th>Null %</th><th>Unique Values</th>';
+                statsHtml += '</tr></thead><tbody>';
+                
+                data.columns.forEach(col => {
+                    statsHtml += `<tr>
+                        <td><strong>${col.name}</strong></td>
+                        <td><span class="badge bg-secondary">${col.dtype}</span></td>
+                        <td>${col.null_count}</td>
+                        <td>${col.null_percentage}%</td>
+                        <td>${col.unique_count}</td>
+                    </tr>`;
+                });
+                
+                statsHtml += '</tbody></table></div>';
+                document.getElementById('stats-content').innerHTML = statsHtml;
+                document.getElementById('stats-content').style.display = 'block';
+                
+                // Show data preview
+                let previewHtml = '<div class="table-responsive"><table class="table table-sm table-hover"><thead><tr>';
+                
+                if (data.preview_data.length > 0) {
+                    const columns = Object.keys(data.preview_data[0]);
+                    columns.forEach(col => {
+                        previewHtml += `<th>${col}</th>`;
+                    });
+                    previewHtml += '</tr></thead><tbody>';
+                    
+                    data.preview_data.forEach(row => {
+                        previewHtml += '<tr>';
+                        columns.forEach(col => {
+                            previewHtml += `<td>${row[col] || '-'}</td>`;
+                        });
+                        previewHtml += '</tr>';
+                    });
+                    previewHtml += '</tbody></table></div>';
+                } else {
+                    previewHtml = '<p class="text-muted">No data to display</p>';
+                }
+                
+                document.getElementById('preview-content').innerHTML = previewHtml;
+                document.getElementById('preview-content').style.display = 'block';
+                document.getElementById('preview-loading').style.display = 'none';
+            }
+        })
+        .catch(error => {
+            document.getElementById('stats-loading').innerHTML = '<p class="text-danger">Error loading data</p>';
+        });
+</script>
+{% endblock %}

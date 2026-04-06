@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Upload File - Data Management Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dropzone {
+        border: 2px dashed #3498db;
+        border-radius: 12px;
+        background: #f8f9fa;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .dropzone:hover {
+        border-color: #2980b9;
+        background: #e8f4fd;
+    }
+    .dropzone.dragover {
+        border-color: #27ae60;
+        background: #e8f8f0;
+    }
+    .upload-progress {
+        display: none;
+        margin-top: 20px;
+    }
+    .progress-bar {
+        transition: width 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-cloud-upload-alt me-2"></i>Upload File
+</h1>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Your Data File</h5>
+            </div>
+            <div class="card-body">
+                <div id="dropzone" class="dropzone text-center">
+                    <div>
+                        <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
+                        <h5>Drag & Drop File Here</h5>
+                        <p class="text-muted">or click to browse</p>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Supported: CSV, Excel (xlsx, xls), JSON | Max: 100MB
+                        </small>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" style="display: none;" accept=".csv,.xlsx,.xls,.json">
+                
+                <div class="upload-progress" id="uploadProgress">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             style="width: 0%">0%</div>
+                    </div>
+                    <p class="text-center mt-2" id="uploadStatus">Uploading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.querySelector('.progress-bar');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    // Click to browse
+    dropzone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // Drag & drop events
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+    
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+    
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) uploadFile(file);
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) uploadFile(e.target.files[0]);
+    });
+    
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        uploadProgress.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        
+        fetch('/upload/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                uploadStatus.innerHTML = '<i class="fas fa-check-circle text-success me-2"></i>Upload successful! Redirecting...';
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle text-danger me-2"></i>' + data.message;
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle text-danger me-2"></i>Upload failed: ' + error;
+        });
+    }
+</script>
+{% endblock %}

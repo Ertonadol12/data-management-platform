@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Data Management Platform{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Uploads</h5>
+                <h2>{{ total_uploads }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Files Processed</h5>
+                <h2>{{ processed_uploads }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Success Rate</h5>
+                <h2>{{ success_rate }}%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Quick Upload</h5>
+    </div>
+    <div class="card-body text-center">
+        <a href="{{ url_for('upload.upload_page') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-upload me-2"></i>Upload New File
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Recent Uploads</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_uploads %}
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Filename</th><th>Date</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for upload in recent_uploads %}
+                <tr>
+                    <td>{{ upload.original_filename }}</td>
+                    <td>{{ upload.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if upload.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                        {% else %}
+                        <span class="badge bg-warning">{{ upload.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('preview.preview_page', upload_id=upload.id) }}" class="btn btn-sm btn-info">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center">No uploads yet. <a href="{{ url_for('upload.upload_page') }}">Upload your first file</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

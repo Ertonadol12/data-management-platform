@@ -52,14 +52,6 @@ python3 run.py
 ## Running Tests
 pytest tests/ -v
 
-## Project Structure
-data_management_platform/
-├── app/           # Main application
-├── tests/         # Unit tests
-├── config.py      # Configuration
-├── requirements.txt
-└── run.py
-
 ## 👨‍💻 Author
 Ermias Meseret-Data Engineer
 

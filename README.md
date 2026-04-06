@@ -58,5 +58,12 @@ Ermias Meseret-Data Engineer
 ## 📝 License
 MIT License
 
+## 🌐 Live Demo
+
+The application is live and accessible at:
+
+**🔗 [https://data-management-platform-e.onrender.com](https://data-management-platform-e.onrender.com)**
+
+
 
 

@@ -49,7 +49,7 @@ python3 init_db.py
 # Run the application
 python3 run.py
 
-## Running Tests
+## 🧪Running Tests
 pytest tests/ -v
 
 ## 👨‍💻 Author
